@@ -183,6 +183,30 @@
             color: var(--text-primary);
         }
 
+        .toggle-btn {
+            width: 100%;
+            background-color: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.875rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
         .result-area {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
@@ -349,6 +373,20 @@
                 </div>
             </div>
 
+            <!-- 加成金額 -->
+            <div class="input-section" style="margin-bottom: 1.5rem;">
+                <label>加成金額 (元)</label>
+                <div class="input-wrapper" style="margin-bottom: 0;">
+                    <span class="icon">💰</span>
+                    <input type="number" id="surcharge-input" placeholder="例如：50" min="0" step="1">
+                </div>
+            </div>
+
+            <!-- 夜間加成 (僅台北) -->
+            <button type="button" id="night-btn" class="toggle-btn">
+                <span>🌙</span> 啟用夜間加成 (+15元)
+            </button>
+
             <button class="reset-btn" id="reset-btn">🔄 清除歸零</button>
 
             <div class="result-area">
@@ -422,8 +460,11 @@
             const totalPriceEl = document.getElementById('total-price');
             const driverIncomeEl = document.getElementById('driver-income');
             const resetBtn = document.getElementById('reset-btn');
+            const surchargeInput = document.getElementById('surcharge-input');
+            const nightBtn = document.getElementById('night-btn');
 
             let currentRegion = 'taipei';
+            let isNightSurcharge = false;
 
             // 定義各區費率
             const rates = {
@@ -435,11 +476,12 @@
             const calculateFare = () => {
                 const time = parseFloat(timeInput.value) || 0;
                 const distance = parseFloat(distanceInput.value) || 0;
+                const surcharge = parseFloat(surchargeInput.value) || 0;
                 const rate = rates[currentRegion];
 
                 let total = 0;
                 
-                if (distance > 0 || time > 0) {
+                if (distance > 0 || time > 0 || surcharge > 0 || isNightSurcharge) {
                     // 基本費
                     let distanceFee = rate.baseFare;
                     
@@ -451,7 +493,11 @@
                     // 時間費 (每分鐘)
                     let timeFee = time * rate.perMin;
                     
-                    total = distanceFee + timeFee;
+                    total = distanceFee + timeFee + surcharge;
+                    
+                    if (currentRegion === 'taipei' && isNightSurcharge) {
+                        total += 15;
+                    }
                 }
 
                 // 平台抽成 25%，司機實得 75%
@@ -465,6 +511,18 @@
             // 綁定輸入事件
             timeInput.addEventListener('input', calculateFare);
             distanceInput.addEventListener('input', calculateFare);
+            surchargeInput.addEventListener('input', calculateFare);
+            
+            // 夜間加成事件
+            nightBtn.addEventListener('click', () => {
+                isNightSurcharge = !isNightSurcharge;
+                if (isNightSurcharge) {
+                    nightBtn.classList.add('active');
+                } else {
+                    nightBtn.classList.remove('active');
+                }
+                calculateFare();
+            });
 
             // 切換地區按鈕事件
             regionBtns.forEach(btn => {
@@ -478,6 +536,14 @@
                     currentRegion = btn.dataset.region;
                     const rate = rates[currentRegion];
                     
+                    if (currentRegion === 'taipei') {
+                        nightBtn.style.display = 'flex';
+                    } else {
+                        nightBtn.style.display = 'none';
+                        isNightSurcharge = false;
+                        nightBtn.classList.remove('active');
+                    }
+                    
                     // 更新上方提示文字
                     fareSubtitle.textContent = `基本 ${rate.baseFare} 元 (含${rate.baseDist}km) ｜ 每公里 ${rate.perKm} 元 ｜ 每分鐘 ${rate.perMin} 元`;
                     // 重新計算車資
@@ -489,6 +555,9 @@
             resetBtn.addEventListener('click', () => {
                 timeInput.value = '';
                 distanceInput.value = '';
+                surchargeInput.value = '';
+                isNightSurcharge = false;
+                nightBtn.classList.remove('active');
                 calculateFare();
             });
 
