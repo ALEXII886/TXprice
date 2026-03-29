@@ -161,6 +161,7 @@
         }
         input[type="number"] {
             -moz-appearance: textfield;
+            appearance: textfield;
         }
 
         .reset-btn {
@@ -222,16 +223,106 @@
         .driver-income {
             color: var(--success-color);
         }
+
+        /* 頁面切換按鈕樣式 */
+        .tab-toggle {
+            display: flex;
+            background-color: var(--bg-input);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.35rem;
+            margin: 1rem auto;
+            max-width: 300px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.75rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(59,130,246,0.3);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .income-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .income-row label {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .income-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .income-input-wrapper:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .income-input-wrapper span {
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+
+        .income-input-wrapper input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            width: 100%;
+            outline: none;
+            text-align: right;
+        }
+
+        /* 隱藏元素用 */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <div class="calculator-container">
         <header class="calc-header">
             <h2>車資計算機</h2>
+            <div class="tab-toggle">
+                <button class="tab-btn active" data-target="page-calc">計算機</button>
+                <button class="tab-btn" data-target="page-income">總收入</button>
+            </div>
             <p class="subtitle" id="fare-subtitle">基本 85 元 (含1.2km) ｜ 每公里 25 元 ｜ 每分鐘 3.7 元</p>
         </header>
 
-        <div class="calc-card">
+        <div id="page-calc" class="calc-card">
             <!-- 選擇地區 -->
             <div class="input-section">
                 <div class="region-toggle">
@@ -268,6 +359,55 @@
                 <div class="result-row">
                     <span class="result-label driver-label">司機實得 (扣除 25% 平台費)</span>
                     <span class="result-value driver-income" id="driver-income">$0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-income" class="calc-card hidden">
+            <div class="input-section">
+                <div class="income-row">
+                    <label>UBER</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-uber" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="income-row">
+                    <label>BOLT</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-bolt" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="income-row">
+                    <label>台灣大車隊</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-taiwan" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="income-row">
+                    <label>YOXI</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-yoxi" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="income-row">
+                    <label>路招</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-street" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <button class="reset-btn" id="income-reset-btn">🔄 清除歸零</button>
+
+            <div class="result-area">
+                <div class="result-row">
+                    <span class="result-label">總計</span>
+                    <span class="result-value" id="display-total-income" style="color: #8b5cf6;">$0</span>
                 </div>
             </div>
         </div>
@@ -350,6 +490,57 @@
                 timeInput.value = '';
                 distanceInput.value = '';
                 calculateFare();
+            });
+
+            // 頁面切換邏輯
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const pageCalc = document.getElementById('page-calc');
+            const pageIncome = document.getElementById('page-income');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    if (btn.dataset.target === 'page-calc') {
+                        pageCalc.classList.remove('hidden');
+                        pageIncome.classList.add('hidden');
+                        fareSubtitle.style.visibility = 'visible'; // 顯示原本的副標題
+                        fareSubtitle.style.display = 'block';
+                    } else {
+                        pageCalc.classList.add('hidden');
+                        pageIncome.classList.remove('hidden');
+                        fareSubtitle.style.visibility = 'hidden'; // 隱藏原本的副標題，保留高度
+                        fareSubtitle.style.display = 'none'; // 讓出空間，更簡潔
+                    }
+                });
+            });
+
+            // 總收入計算邏輯
+            const incomeInputs = document.querySelectorAll('.income-input');
+            const displayTotalIncome = document.getElementById('display-total-income');
+            const incomeResetBtn = document.getElementById('income-reset-btn');
+
+            const calculateTotalIncome = () => {
+                const uber = parseFloat(document.getElementById('income-uber').value) || 0;
+                const bolt = parseFloat(document.getElementById('income-bolt').value) || 0;
+                const taiwan = parseFloat(document.getElementById('income-taiwan').value) || 0;
+                const yoxi = parseFloat(document.getElementById('income-yoxi').value) || 0;
+                const street = parseFloat(document.getElementById('income-street').value) || 0;
+
+                // 台灣大車隊與 YOXI 需扣除 15% (即乘上 0.85)
+                const total = Math.round(uber + bolt + (taiwan * 0.85) + (yoxi * 0.85) + street);
+                displayTotalIncome.textContent = `$${total.toLocaleString()}`;
+            };
+
+            incomeInputs.forEach(input => {
+                input.addEventListener('input', calculateTotalIncome);
+            });
+
+            // 總收入歸零按鈕
+            incomeResetBtn.addEventListener('click', () => {
+                incomeInputs.forEach(input => input.value = '');
+                calculateTotalIncome();
             });
         });
     </script>
