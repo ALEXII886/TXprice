@@ -384,7 +384,7 @@
 
             <!-- 夜間加成 (僅台北) -->
             <button type="button" id="night-btn" class="toggle-btn">
-                <span>🌙</span> 啟用夜間加成 (+15元)
+                <span>🌙</span> 啟用夜間加成 (+20元)
             </button>
 
             <button class="reset-btn" id="reset-btn">🔄 清除歸零</button>
@@ -429,6 +429,13 @@
                     <div class="income-input-wrapper">
                         <span>$</span>
                         <input type="number" id="income-yoxi" class="income-input" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="income-row">
+                    <label>LINE GO</label>
+                    <div class="income-input-wrapper">
+                        <span>$</span>
+                        <input type="number" id="income-linego" class="income-input" placeholder="0" min="0">
                     </div>
                 </div>
                 <div class="income-row">
@@ -496,7 +503,7 @@
                     total = distanceFee + timeFee + surcharge;
                     
                     if (currentRegion === 'taipei' && isNightSurcharge) {
-                        total += 15;
+                        total += 20;
                     }
                 }
 
@@ -595,10 +602,11 @@
                 const bolt = parseFloat(document.getElementById('income-bolt').value) || 0;
                 const taiwan = parseFloat(document.getElementById('income-taiwan').value) || 0;
                 const yoxi = parseFloat(document.getElementById('income-yoxi').value) || 0;
+                const linego = parseFloat(document.getElementById('income-linego').value) || 0;
                 const street = parseFloat(document.getElementById('income-street').value) || 0;
 
-                // 台灣大車隊與 YOXI 需扣除 15% (即乘上 0.85)
-                const total = Math.round(uber + bolt + (taiwan * 0.85) + (yoxi * 0.85) + street);
+                // 台灣大車隊與 YOXI 扣除 15% (0.85)，LINE GO 扣除 17% (0.83)
+                const total = Math.round(uber + bolt + (taiwan * 0.85) + (yoxi * 0.85) + (linego * 0.83) + street);
                 displayTotalIncome.textContent = `$${total.toLocaleString()}`;
             };
 
