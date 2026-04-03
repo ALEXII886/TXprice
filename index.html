@@ -605,8 +605,8 @@
                 const linego = parseFloat(document.getElementById('income-linego').value) || 0;
                 const street = parseFloat(document.getElementById('income-street').value) || 0;
 
-                // 台灣大車隊與 YOXI 扣除 15% (0.85)，LINE GO 扣除 17% (0.83)
-                const total = Math.round(uber + bolt + (taiwan * 0.85) + (yoxi * 0.85) + (linego * 0.83) + street);
+                // 台灣大車隊扣除 15% (0.85)，YOXI 扣除 12% (0.88)，LINE GO 扣除 17% (0.83)
+                const total = Math.round(uber + bolt + (taiwan * 0.85) + (yoxi * 0.88) + (linego * 0.83) + street);
                 displayTotalIncome.textContent = `$${total.toLocaleString()}`;
             };
 
